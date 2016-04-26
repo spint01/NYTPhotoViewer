@@ -7,6 +7,7 @@
 //
 
 @import UIKit;
+#import <MediaPlayer/MediaPlayer.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -52,6 +53,13 @@ NS_ASSUME_NONNULL_BEGIN
  *  An attributed string for display as the credit of the caption.
  */
 @property (nonatomic, readonly, nullable) NSAttributedString *attributedCaptionCredit;
+
+/**
+ *  The moviePlayerController to display.
+ *
+ *  This property is used to play a video with an existing moviePlayerController
+ */
+@property (nonatomic, readonly, nullable) MPMoviePlayerController *moviePlayerController;
 
 @end
 

@@ -27,6 +27,7 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 @property (nonatomic) NSNotificationCenter *notificationCenter;
 @property (nonatomic) UITapGestureRecognizer *doubleTapGestureRecognizer;
 @property (nonatomic) UILongPressGestureRecognizer *longPressGestureRecognizer;
+@property (nonatomic) MPMoviePlayerController *moviePlayerController;
 
 @end
 
@@ -61,8 +62,16 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
     
     [self.notificationCenter addObserver:self selector:@selector(photoImageUpdatedWithNotification:) name:NYTPhotoViewControllerPhotoImageUpdatedNotification object:nil];
     
-    self.scalingImageView.frame = self.view.bounds;
-    [self.view addSubview:self.scalingImageView];
+    // Allows a movie to play instead of displaying an image
+    if (_moviePlayerController != nil) {
+        [self.moviePlayerController.view removeFromSuperview];
+        
+        [self.view addSubview:_moviePlayerController.view];
+        _moviePlayerController.backgroundView.backgroundColor = [UIColor blackColor];
+    } else {
+        self.scalingImageView.frame = self.view.bounds;
+        [self.view addSubview:self.scalingImageView];
+    }
     
     [self.view addSubview:self.loadingView];
     [self.loadingView sizeToFit];
@@ -75,6 +84,7 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
     [super viewWillLayoutSubviews];
     
     self.scalingImageView.frame = self.view.bounds;
+    self.moviePlayerController.view.frame = self.view.bounds;
     
     [self.loadingView sizeToFit];
     self.loadingView.center = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
@@ -95,10 +105,11 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 - (void)commonInitWithPhoto:(id <NYTPhoto>)photo loadingView:(UIView *)loadingView notificationCenter:(NSNotificationCenter *)notificationCenter {
     _photo = photo;
     
-    if (photo.imageData) {
+    if (photo.moviePlayerController) {
+        self.moviePlayerController = photo.moviePlayerController;
+    } else if (photo.imageData) {
         _scalingImageView = [[NYTScalingImageView alloc] initWithImageData:photo.imageData frame:CGRectZero];
-    }
-    else {
+    } else {
         UIImage *photoImage = photo.image ?: photo.placeholderImage;
         _scalingImageView = [[NYTScalingImageView alloc] initWithImage:photoImage frame:CGRectZero];
         
@@ -150,30 +161,38 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 - (void)setupGestureRecognizers {
     self.doubleTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didDoubleTapWithGestureRecognizer:)];
     self.doubleTapGestureRecognizer.numberOfTapsRequired = 2;
-    
+
     self.longPressGestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(didLongPressWithGestureRecognizer:)];
 }
 
 - (void)didDoubleTapWithGestureRecognizer:(UITapGestureRecognizer *)recognizer {
-    CGPoint pointInView = [recognizer locationInView:self.scalingImageView.imageView];
-    
-    CGFloat newZoomScale = self.scalingImageView.maximumZoomScale;
+    if (self.moviePlayerController != nil) {
+        if (_moviePlayerController.scalingMode == MPMovieScalingModeAspectFit) {
+            _moviePlayerController.scalingMode = MPMovieScalingModeAspectFill;
+        } else {
+            _moviePlayerController.scalingMode = MPMovieScalingModeAspectFit; // normal size
+        }
+    } else {
+        CGPoint pointInView = [recognizer locationInView:self.scalingImageView.imageView];
+        
+        CGFloat newZoomScale = self.scalingImageView.maximumZoomScale;
 
-    if (self.scalingImageView.zoomScale >= self.scalingImageView.maximumZoomScale
-        || ABS(self.scalingImageView.zoomScale - self.scalingImageView.maximumZoomScale) <= 0.01) {
-        newZoomScale = self.scalingImageView.minimumZoomScale;
+        if (self.scalingImageView.zoomScale >= self.scalingImageView.maximumZoomScale
+            || ABS(self.scalingImageView.zoomScale - self.scalingImageView.maximumZoomScale) <= 0.01) {
+            newZoomScale = self.scalingImageView.minimumZoomScale;
+        }
+        
+        CGSize scrollViewSize = self.scalingImageView.bounds.size;
+        
+        CGFloat width = scrollViewSize.width / newZoomScale;
+        CGFloat height = scrollViewSize.height / newZoomScale;
+        CGFloat originX = pointInView.x - (width / 2.0);
+        CGFloat originY = pointInView.y - (height / 2.0);
+        
+        CGRect rectToZoomTo = CGRectMake(originX, originY, width, height);
+        
+        [self.scalingImageView zoomToRect:rectToZoomTo animated:YES];
     }
-    
-    CGSize scrollViewSize = self.scalingImageView.bounds.size;
-    
-    CGFloat width = scrollViewSize.width / newZoomScale;
-    CGFloat height = scrollViewSize.height / newZoomScale;
-    CGFloat originX = pointInView.x - (width / 2.0);
-    CGFloat originY = pointInView.y - (height / 2.0);
-    
-    CGRect rectToZoomTo = CGRectMake(originX, originY, width, height);
-    
-    [self.scalingImageView zoomToRect:rectToZoomTo animated:YES];
 }
 
 - (void)didLongPressWithGestureRecognizer:(UILongPressGestureRecognizer *)recognizer {

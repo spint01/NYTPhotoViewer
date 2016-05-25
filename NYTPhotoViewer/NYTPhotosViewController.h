@@ -232,6 +232,16 @@ extern NSString * const NYTPhotosViewControllerDidDismissNotification;
 - (BOOL)photosViewController:(NYTPhotosViewController *)photosViewController handleLongPressForPhoto:(id <NYTPhoto>)photo withGestureRecognizer:(UILongPressGestureRecognizer *)longPressGestureRecognizer;
 
 /**
+ *  Called when determining if the action button should be displayed.
+ *
+ *  @param photosViewController The `NYTPhotosViewController` instance that sent the delegate message.
+ *  @param photo                The photo being displayed when the action button was tapped.
+ *
+ *  @return `YES` if the action button should be displayed, `NO` if not.
+ */
+- (BOOL)photosViewController:(NYTPhotosViewController *)photosViewController canPerformActionButtonForPhoto:(id <NYTPhoto>)photo;
+
+/**
  *  Called when the action button is tapped.
  *
  *  @param photosViewController The `NYTPhotosViewController` instance that sent the delegate message.

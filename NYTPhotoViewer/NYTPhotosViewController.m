@@ -67,7 +67,17 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
 #pragma mark - NSObject(UIResponderStandardEditActions)
 
 - (void)copy:(id)sender {
-    [[UIPasteboard generalPasteboard] setImage:self.currentlyDisplayedPhoto.image];
+    if (self.currentlyDisplayedPhoto.image) {
+        [[UIPasteboard generalPasteboard] setImage:self.currentlyDisplayedPhoto.image];
+    }
+}
+
+// custom method
+- (void)saveImage:(id)sender
+{
+    if (self.currentlyDisplayedPhoto.image) {
+        UIImageWriteToSavedPhotosAlbum(self.currentlyDisplayedPhoto.image, self, nil, nil);
+    }
 }
 
 #pragma mark - UIResponder
@@ -77,7 +87,10 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
 }
 
 - (BOOL)canPerformAction:(SEL)action withSender:(id)sender {
-    if (self.shouldHandleLongPress && action == @selector(copy:) && self.currentlyDisplayedPhoto.image) {
+    if (self.shouldHandleLongPress &&
+        (action == @selector(copy:) || @selector(saveImage:) == action) &&
+        self.currentlyDisplayedPhoto.image &&
+        !self.currentlyDisplayedPhoto.moviePlayerController) {
         return YES;
     }
     
@@ -188,9 +201,17 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
     _overlayView = [[NYTPhotosOverlayView alloc] initWithFrame:CGRectZero];
     _overlayView.leftBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"NYTPhotoViewerCloseButtonX" inBundle:[NSBundle nyt_photoViewerResourceBundle] compatibleWithTraitCollection:nil] landscapeImagePhone:[UIImage imageNamed:@"NYTPhotoViewerCloseButtonXLandscape" inBundle:[NSBundle nyt_photoViewerResourceBundle] compatibleWithTraitCollection:nil] style:UIBarButtonItemStylePlain target:self action:@selector(doneButtonTapped:)];
     _overlayView.leftBarButtonItem.imageInsets = NYTPhotosViewControllerCloseButtonImageInsets;
-    _overlayView.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonTapped:)];
+    BOOL clientCanHandle = YES;
+    if ([self.delegate respondsToSelector:@selector(photosViewController:canPerformActionButtonForPhoto:)]) {
+        clientCanHandle = [self.delegate photosViewController:self canPerformActionButtonForPhoto:initialPhoto];
+    }
+    
+    if (clientCanHandle) {
+        _overlayView.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonTapped:)];
+    }
 
-    _notificationCenter = [[NSNotificationCenter alloc] init];
+    //_notificationCenter = [[NSNotificationCenter alloc] init];
+    _notificationCenter = [NSNotificationCenter defaultCenter];
 
     [self setupPageViewControllerWithInitialPhoto:initialPhoto];
 }
@@ -507,6 +528,9 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
         CGRect targetRect = CGRectZero;
         targetRect.origin = [longPressGestureRecognizer locationInView:longPressGestureRecognizer.view];
         [menuController setTargetRect:targetRect inView:longPressGestureRecognizer.view];
+        // Allow save image
+        UIMenuItem *menuItem = [[UIMenuItem alloc] initWithTitle:@"Save" action:@selector(saveImage:)];
+        [menuController setMenuItems:@[ menuItem ]];
         [menuController setMenuVisible:YES animated:YES];
     }
 }

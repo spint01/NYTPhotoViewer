@@ -7,7 +7,8 @@
 //
 
 @import UIKit;
-#import <MediaPlayer/MediaPlayer.h>
+@import AVKit;
+@import AVFoundation;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -59,7 +60,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  *  This property is used to play a video with an existing moviePlayerController
  */
-@property (nonatomic, readonly, nullable) MPMoviePlayerController *moviePlayerController;
+@property (nonatomic, readonly, nullable) AVPlayerViewController *moviePlayerController;
 
 @end
 

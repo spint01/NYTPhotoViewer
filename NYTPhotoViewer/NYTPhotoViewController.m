@@ -9,6 +9,8 @@
 #import "NYTPhotoViewController.h"
 #import "NYTPhoto.h"
 #import "NYTScalingImageView.h"
+@import AVFoundation;
+@import AVKit;
 
 #ifdef ANIMATED_GIF_SUPPORT
 #import <FLAnimatedImage/FLAnimatedImage.h>
@@ -27,7 +29,7 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 @property (nonatomic) NSNotificationCenter *notificationCenter;
 @property (nonatomic) UITapGestureRecognizer *doubleTapGestureRecognizer;
 @property (nonatomic) UILongPressGestureRecognizer *longPressGestureRecognizer;
-@property (nonatomic) MPMoviePlayerController *moviePlayerController;
+@property (nonatomic) AVPlayerViewController *moviePlayerController;
 
 @end
 
@@ -67,7 +69,7 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
         [self.moviePlayerController.view removeFromSuperview];
         
         [self.view addSubview:_moviePlayerController.view];
-        _moviePlayerController.backgroundView.backgroundColor = [UIColor blackColor];
+//        _moviePlayerController.backgroundView.backgroundColor = [UIColor blackColor];
     } else {
         self.scalingImageView.frame = self.view.bounds;
         [self.view addSubview:self.scalingImageView];
@@ -167,11 +169,11 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 
 - (void)didDoubleTapWithGestureRecognizer:(UITapGestureRecognizer *)recognizer {
     if (self.moviePlayerController != nil) {
-        if (_moviePlayerController.scalingMode == MPMovieScalingModeAspectFit) {
-            _moviePlayerController.scalingMode = MPMovieScalingModeAspectFill;
-        } else {
-            _moviePlayerController.scalingMode = MPMovieScalingModeAspectFit; // normal size
-        }
+//        if (_moviePlayerController.scalingMode == MPMovieScalingModeAspectFit) {
+//            _moviePlayerController.scalingMode = MPMovieScalingModeAspectFill;
+//        } else {
+//            _moviePlayerController.scalingMode = MPMovieScalingModeAspectFit; // normal size
+//        }
     } else {
         CGPoint pointInView = [recognizer locationInView:self.scalingImageView.imageView];
         

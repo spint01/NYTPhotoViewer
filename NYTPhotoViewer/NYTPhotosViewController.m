@@ -16,6 +16,7 @@
 #import "NYTPhotosOverlayView.h"
 #import "NYTPhotoCaptionView.h"
 #import "NSBundle+NYTPhotoViewer.h"
+#import <sys/utsname.h>
 
 #ifdef ANIMATED_GIF_SUPPORT
 #import <FLAnimatedImage/FLAnimatedImage.h>
@@ -52,6 +53,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
 @property (nonatomic, readonly) NYTPhotoViewController *currentPhotoViewController;
 @property (nonatomic, readonly) UIView *referenceViewForCurrentPhoto;
 @property (nonatomic, readonly) CGPoint boundsCenterPoint;
+@property (nonatomic) BOOL allowHideStatusBar;
 
 @end
 
@@ -116,6 +118,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    self.allowHideStatusBar = [self checkValidDeviceModel];
     self.view.tintColor = [UIColor whiteColor];
     self.view.backgroundColor = [UIColor blackColor];
     self.pageViewController.view.backgroundColor = [UIColor clearColor];
@@ -128,7 +131,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
     [self.pageViewController didMoveToParentViewController:self];
     
     [self addOverlayView];
-    
+
     self.transitionController.startingView = self.referenceViewForCurrentPhoto;
     
     UIView *endingView;
@@ -155,7 +158,9 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
 }
 
 - (BOOL)prefersStatusBarHidden {
-    return YES;
+    // on iOS 9 and early iphone/ipad models hiding the status bar causes device rotation to be slow or
+    // crashes the device. For the older models we will just show the status bar always.
+    return ([[UIDevice currentDevice].systemVersion intValue] >= 10 && [self allowHideStatusBar]);
 }
 
 - (UIStatusBarAnimation)preferredStatusBarUpdateAnimation {
@@ -509,6 +514,29 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
 
 - (CGPoint)boundsCenterPoint {
     return CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
+}
+
+// Make sure this device is an iPhone 6 or greater or iPad Air 2 or greater
+- (BOOL)checkValidDeviceModel {
+    struct utsname systemInfo;
+    uname(&systemInfo);
+
+    NSString *deviceModel = [NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding];
+    if ([deviceModel hasPrefix:@"iPhone"] && deviceModel.length > 7) {
+        NSString *s = [deviceModel substringWithRange:NSMakeRange(6, 1)];
+        // iPhone 6 or greater
+        if (s.integerValue >= 7) {
+            return YES;
+        }
+    } else if ([deviceModel hasPrefix:@"iPad"] && deviceModel.length > 5) {
+        NSString *s = [deviceModel substringWithRange:NSMakeRange(4, 1)];
+        // iPad Air or greater
+        if (s.integerValue >= 4) {
+            return YES;
+        }
+    }
+
+    return NO;
 }
 
 #pragma mark - NYTPhotoViewControllerDelegate

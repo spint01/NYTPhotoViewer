@@ -535,7 +535,11 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
             return YES;
         }
     }
-
+#if DEBUG
+    if ([deviceModel hasPrefix:@"x86_"]) {
+        return YES;
+    }
+#endif
     return NO;
 }
 

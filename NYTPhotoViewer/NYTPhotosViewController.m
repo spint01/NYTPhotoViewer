@@ -80,20 +80,20 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
     if (self.currentlyDisplayedPhoto.image) {
         if ([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusAuthorized) {
             UIImageWriteToSavedPhotosAlbum(self.currentlyDisplayedPhoto.image, self, nil, nil);
+        } else {
+            [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if ([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusAuthorized) {
+                        UIImageWriteToSavedPhotosAlbum(self.currentlyDisplayedPhoto.image, self, nil, nil);
+                    } else {
+                        // Display message to user
+                        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Photo Library Access" message:@"Please enable Photo 'Read and Write' Access in System Settings" preferredStyle:UIAlertControllerStyleAlert];
+                        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+                        [self presentViewController:alert animated:YES completion:nil];
+                    }
+                });
+           }];
         }
-
-        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                if ([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusAuthorized) {
-                    UIImageWriteToSavedPhotosAlbum(self.currentlyDisplayedPhoto.image, self, nil, nil);
-                } else {
-                    // Display message to user
-                    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Photo Library Access" message:@"Please enable Photo 'Read and Write' Access in System Settings" preferredStyle:UIAlertControllerStyleAlert];
-                    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
-                    [self presentViewController:alert animated:YES completion:nil];
-                }
-            });
-       }];
    }
 }
 

@@ -177,9 +177,9 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
     } else {
         CGPoint pointInView = [recognizer locationInView:self.scalingImageView.imageView];
         
-        CGFloat newZoomScale = self.scalingImageView.maximumZoomScale;
+        CGFloat newZoomScale = self.scalingImageView.minimumZoomScale * 3.0;
 
-        if (self.scalingImageView.zoomScale >= self.scalingImageView.maximumZoomScale
+        if (self.scalingImageView.zoomScale >= newZoomScale
             || ABS(self.scalingImageView.zoomScale - self.scalingImageView.maximumZoomScale) <= 0.01) {
             newZoomScale = self.scalingImageView.minimumZoomScale;
         }

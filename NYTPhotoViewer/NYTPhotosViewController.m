@@ -107,7 +107,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtonImageInsets = {3, 0,
     if (self.shouldHandleLongPress &&
         (action == @selector(copy:) || @selector(saveImage:) == action) &&
         self.currentlyDisplayedPhoto.image &&
-        !self.currentlyDisplayedPhoto.moviePlayerController) {
+        !self.currentlyDisplayedPhoto.moviePlayerView) {
         return YES;
     }
     

@@ -29,7 +29,7 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 @property (nonatomic) NSNotificationCenter *notificationCenter;
 @property (nonatomic) UITapGestureRecognizer *doubleTapGestureRecognizer;
 @property (nonatomic) UILongPressGestureRecognizer *longPressGestureRecognizer;
-@property (nonatomic) AVPlayerViewController *moviePlayerController;
+@property (nonatomic) UIView *moviePlayerView;
 
 @end
 
@@ -65,11 +65,11 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
     [self.notificationCenter addObserver:self selector:@selector(photoImageUpdatedWithNotification:) name:NYTPhotoViewControllerPhotoImageUpdatedNotification object:nil];
     
     // Allows a movie to play instead of displaying an image
-    if (_moviePlayerController != nil) {
-        [self.moviePlayerController.view removeFromSuperview];
+    if (_moviePlayerView != nil) {
+        [self.moviePlayerView removeFromSuperview];
         
-        [self.view addSubview:_moviePlayerController.view];
-//        _moviePlayerController.backgroundView.backgroundColor = [UIColor blackColor];
+        [self.view addSubview:_moviePlayerView];
+//        _moviePlayerView.backgroundView.backgroundColor = [UIColor blackColor];
     } else {
         self.scalingImageView.frame = self.view.bounds;
         [self.view addSubview:self.scalingImageView];
@@ -86,7 +86,7 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
     [super viewWillLayoutSubviews];
     
     self.scalingImageView.frame = self.view.bounds;
-    self.moviePlayerController.view.frame = self.view.bounds;
+    self.moviePlayerView.frame = self.view.bounds;
     
     [self.loadingView sizeToFit];
     self.loadingView.center = CGPointMake(CGRectGetMidX(self.view.bounds), CGRectGetMidY(self.view.bounds));
@@ -107,8 +107,8 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 - (void)commonInitWithPhoto:(id <NYTPhoto>)photo loadingView:(UIView *)loadingView notificationCenter:(NSNotificationCenter *)notificationCenter {
     _photo = photo;
     
-    if (photo.moviePlayerController) {
-        self.moviePlayerController = photo.moviePlayerController;
+    if (photo.moviePlayerView) {
+        self.moviePlayerView = photo.moviePlayerView;
     } else if (photo.imageData) {
         _scalingImageView = [[NYTScalingImageView alloc] initWithImageData:photo.imageData frame:CGRectZero];
     } else {
@@ -168,11 +168,11 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 }
 
 - (void)didDoubleTapWithGestureRecognizer:(UITapGestureRecognizer *)recognizer {
-    if (self.moviePlayerController != nil) {
-//        if (_moviePlayerController.scalingMode == MPMovieScalingModeAspectFit) {
-//            _moviePlayerController.scalingMode = MPMovieScalingModeAspectFill;
+    if (self.moviePlayerView != nil) {
+//        if (_moviePlayerView.scalingMode == MPMovieScalingModeAspectFit) {
+//            _moviePlayerView.scalingMode = MPMovieScalingModeAspectFill;
 //        } else {
-//            _moviePlayerController.scalingMode = MPMovieScalingModeAspectFit; // normal size
+//            _moviePlayerView.scalingMode = MPMovieScalingModeAspectFit; // normal size
 //        }
     } else {
         CGPoint pointInView = [recognizer locationInView:self.scalingImageView.imageView];

@@ -56,11 +56,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly, nullable) NSAttributedString *attributedCaptionCredit;
 
 /**
- *  The moviePlayerController to display.
+ *  The moviePlayerView to display.
  *
- *  This property is used to play a video with an existing moviePlayerController
+ *  This property is used to play a video with an existing moviePlayerView
  */
-@property (nonatomic, readonly, nullable) AVPlayerViewController *moviePlayerController;
+@property (nonatomic, readonly, nullable) UIView *moviePlayerView;
 
 @end
 
